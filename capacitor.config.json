@@ -1,0 +1,7 @@
+{
+  "appId": "com.lavazlife.workspacepro",
+  "appName": "Lava Pro",
+  "webDir": ".",
+  "bundledWebRuntime": false
+}
+
