@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lava Workspace Master</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;600&family=Orbitron:wght@500;700&family=Cinzel:wght@600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body { font-family: 'Outfit', sans-serif; background-color: #0b1120; color: #e5e7eb; overflow: hidden; }
+    .font-mono { font-family: 'Fira Code', monospace; }
+    
+    .neon-cursive-title { 
+      font-family: 'Dancing Script', cursive; color: #ffffff; 
+      text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0,0,0,.1), 0 0 10px #f97316, 0 0 20px #f97316, 0 0 30px #9f1239, 0 0 40px #9f1239, 0 15px 20px rgba(0,0,0,0.5);
+      letter-spacing: 0.05em; animation: neon3DPulse 3s infinite alternate ease-in-out;
+    }
+    @keyframes neon3DPulse {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.2); text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0,0,0,.1), 0 0 15px #f97316, 0 0 30px #f97316, 0 0 45px #9f1239, 0 0 60px #9f1239, 0 15px 20px rgba(0,0,0,0.6); }
+    }
+
+    .panel-3d { background: linear-gradient(145deg, rgba(23,37,84,0.9), rgba(15,23,42,0.95)); backdrop-filter: blur(16px); box-shadow: 10px 10px 20px rgba(0,0,0,0.6), -5px -5px 15px rgba(255,255,255,0.03); border-top: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.08); border-radius: 16px; }
+    .panel-inner { background: rgba(8,12,23,0.8); box-shadow: inset 4px 4px 8px rgba(0,0,0,0.6), inset -2px -2px 6px rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.02); }
+    .glass-nav { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+    .btn-3d-burgundy { background: linear-gradient(135deg, #f43f5e 0%, #be123c 40%, #881337 100%); color: #ffffff; border-top: 1px solid #fda4af; box-shadow: 0 4px 0 #4c0519, 0 6px 12px rgba(225, 29, 72, 0.4); text-shadow: 1px 1px 2px rgba(0,0,0,0.6); transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+    .btn-3d-burgundy:hover { filter: brightness(1.15); transform: translateY(-1px); box-shadow: 0 5px 0 #4c0519, 0 8px 15px rgba(225, 29, 72, 0.5); }
+    .btn-3d-burgundy:active { transform: translateY(4px); box-shadow: 0 0 0 #4c0519, 0 2px 4px rgba(225, 29, 72, 0.4); filter: brightness(0.9); }
+
+    .btn-3d-silver { background: linear-gradient(135deg, #ffffff 0%, #d1d5db 40%, #9ca3af 80%, #6b7280 100%); color: #111827; border-top: 1px solid #ffffff; box-shadow: 0 4px 0 #4b5563, 0 6px 12px rgba(0,0,0,0.5); font-weight: 800; text-shadow: 1px 1px 0px rgba(255,255,255,0.8); transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+    .btn-3d-silver:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 5px 0 #4b5563, 0 8px 15px rgba(0,0,0,0.6); }
+    .btn-3d-silver:active { transform: translateY(4px); box-shadow: 0 0 0 #4b5563, 0 2px 4px rgba(0,0,0,0.5); filter: brightness(0.9); }
+
+    .btn-3d-navy { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 40%, #172554 100%); color: #e5e7eb; border-top: 1px solid #93c5fd; box-shadow: 0 4px 0 #080f26, 0 6px 12px rgba(29, 78, 216, 0.4); text-shadow: 1px 1px 2px rgba(0,0,0,0.6); transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+    .btn-3d-navy:hover { filter: brightness(1.15); transform: translateY(-1px); box-shadow: 0 5px 0 #080f26, 0 8px 15px rgba(29, 78, 216, 0.5); }
+    .btn-3d-navy:active { transform: translateY(4px); box-shadow: 0 0 0 #080f26, 0 2px 4px rgba(29, 78, 216, 0.4); filter: brightness(0.9); }
+
+    @keyframes neonIgnite {
+      0%, 15%, 35% { box-shadow: 0 4px 0 #4c0519; filter: brightness(0.8) hue-rotate(-10deg); color: rgba(255,255,255,0.7); }
+      10%, 25%, 40% { box-shadow: 0 0 10px #f97316, 0 4px 0 #4c0519; filter: brightness(1.5) saturate(1.5); color: #fff; text-shadow: 0 0 5px #fff; }
+      100% { box-shadow: 0 0 20px #f97316, 0 0 30px #e11d48, inset 0 0 10px rgba(255,255,255,0.5); filter: brightness(1.2); color: #fff; background: linear-gradient(135deg, #f97316 0%, #e11d48 100%); border-top: 1px solid #fff; transform: translateY(-1px); text-shadow: 0 0 8px rgba(255,255,255,0.8); }
+    }
+    .animate-neon-ignite { animation: neonIgnite 0.4s ease-out forwards; pointer-events: none; }
+
+    .pop-text { text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-weight: 600; letter-spacing: 0.02em; }
+    .input-3d { background: rgba(11,17,32,0.8); border: 1px solid #1e3a8a; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5); color: #d1d5db; }
+    .input-3d:focus { border-color: #f97316; outline: none; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5), 0 0 8px rgba(249,115,22,0.3); }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; md:width: 8px; md:height: 8px; }
+    ::-webkit-scrollbar-track { background: #080c17; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5); }
+    ::-webkit-scrollbar-thumb { background: #1e3a8a; border-radius: 4px; border: 1px solid #3b82f6; }
+    
+    .tiptap { outline: none; height: 100%; min-height: 100%; color: inherit; }
+    .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; color: #6b7280; pointer-events: none; height: 0; }
+    .tiptap img { max-width: 100%; height: auto; border-radius: 0.5rem; display: block; margin: 0.5rem 0; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
+
+    .nav-active { border-bottom: 3px solid #f97316; color: white; text-shadow: 0 0 10px rgba(249, 115, 22, 0.6); }
+    .nav-inactive { border-bottom: 3px solid transparent; color: #9ca3af; }
+
+    .gradient-bg { background: radial-gradient(circle at top right, #172554, #080c17 70%); position: relative; overflow-y: auto; height: 100%; }
+    .upload-zone { background: #0f172a; border: 2px dashed #1e3a8a; box-shadow: inset 5px 5px 15px rgba(0,0,0,0.5); transition: all 0.4s; position: relative; overflow: hidden; }
+    .upload-zone:hover { border-color: #f97316; background: #172554; transform: scale(1.01); box-shadow: inset 5px 5px 15px rgba(0,0,0,0.5), 0 0 20px rgba(249, 115, 22, 0.2); }
+    
+    /* Scoped CSS for Copilot View */
+    #view-copilot { --bg: transparent; --card: rgba(30,30,30,0.8); --text: #e0e0e0; --accent: #f97316; --danger: #dc3545; --success: #28a745; --border: #333; }
+    #view-copilot .cp-nav { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+    #view-copilot .cp-btn { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+    #view-copilot .cp-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    #view-copilot .cp-tab { display: none; animation: fadeIn 0.2s ease; }
+    #view-copilot .cp-tab.active { display: block; }
+    #view-copilot textarea, #view-copilot .cp-sandbox-input { width: 100%; height: 150px; background: #000; color: #0f0; font-family: monospace; border: 1px solid #444; border-radius: 8px; padding: 12px; box-sizing: border-box; margin-bottom: 5px; }
+    #view-copilot .cp-stats-bar { font-size: 11px; color: #888; margin-bottom: 10px; display: flex; justify-content: space-between; }
+    #view-copilot .cp-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    #view-copilot .cp-save-btn { background: var(--success); color: white; border: none; }
+    #view-copilot .cp-clear-btn { background: var(--danger); color: white; border: none; }
+    #view-copilot .cp-util-btn { background: #333; color: #fff; font-size: 0.8em; }
+    #view-copilot .cp-item-card { background: var(--card); padding: 15px; border-radius: 10px; margin-bottom: 12px; border: 1px solid var(--border); transition: 0.3s; position: relative; cursor: pointer; }
+    #view-copilot .cp-item-card.copied { border-color: var(--success); box-shadow: 0 0 15px var(--success); }
+    #view-copilot .cp-signature { font-family: 'Dancing Script', cursive; font-size: 1.2em; color: var(--accent); margin-top: 8px; display: block; }
+    #view-copilot .cp-card-actions { display: flex; gap: 15px; margin-top: 10px; border-top: 1px solid #333; padding-top: 8px; }
+    #view-copilot .cp-action-link { font-size: 0.85em; text-decoration: underline; cursor: pointer; background: none; border: none; padding: 5px 0; font-weight: bold; color: #aaa; }
+    #view-copilot .cp-edit-link { color: var(--accent); }
+    #view-copilot .cp-del-link { color: var(--danger); }
+    #view-copilot #cp-sandbox-preview { width: 100%; min-height: 180px; background: white; border-radius: 8px; border: 2px solid var(--accent); margin-top: 10px; padding: 10px; box-sizing: border-box; color: black; overflow: auto; }
+    #view-copilot .cp-search-input { width: 100%; padding: 12px; background: var(--card); color: var(--text); border: 1px solid var(--accent); border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; }
+
+    /* 3D Studio specific */
+    .spinner { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .hidden-el { display: none !important; }
+  </style>
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { Editor } from 'https://esm.sh/@tiptap/core@2.2.4?bundle';
+    import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.2.4?bundle';
+    import Underline from 'https://esm.sh/@tiptap/extension-underline@2.2.4?bundle';
+    import TextStyle from 'https://esm.sh/@tiptap/extension-text-style@2.2.4?bundle';
+    import Color from 'https://esm.sh/@tiptap/extension-color@2.2.4?bundle';
+    import Image from 'https://esm.sh/@tiptap/extension-image@2.2.4?bundle';
+
+    const firebaseConfig = { apiKey: "AIzaSyC8hA5nn9CQl8WpZNJiUU1W-veiBCnO-eQ", authDomain: "lavanote-project.firebaseapp.com", projectId: "lavanote-project" };
+    const app = initializeApp(firebaseConfig);
+    window.db = getFirestore(app);
+    window.doc = doc; window.setDoc = setDoc; window.getDoc = getDoc;
+
+    window.tiptapEditor = new Editor({
+      element: document.getElementById('text-editor'),
+      extensions: [ StarterKit, Underline, TextStyle, Color, Image ],
+      content: '',
+      onUpdate: ({ editor }) => {
+        if(window.updateCounts) window.updateCounts();
+        clearTimeout(window.saveTimeout);
+        window.saveTimeout = setTimeout(() => {
+          if(!window.notes || !window.currentNoteId) return;
+          const note = window.notes.find(n => n.id === window.currentNoteId);
+          if (note) { note.content = editor.getHTML(); note.updatedAt = Date.now(); if(window.saveToDB) window.saveToDB(); }
+        }, 800);
+      }
+    });
+
+    if(window.loadNotes) window.loadNotes();
+    else window.addEventListener('load', () => window.loadNotes());
+  </script>
+</head>
+<body class="flex flex-col h-screen">
+
+  <header class="w-full text-center pt-4 md:pt-6 pb-2 md:pb-4 glass-nav shrink-0 z-50">
+    <h1 class="text-4xl md:text-6xl neon-cursive-title">Lava Workspace</h1>
+  </header>
+
+  <nav class="glass-nav z-40 flex items-center h-12 md:h-14 shrink-0 overflow-x-auto px-2 md:px-0 scrollbar-hide">
+    <div class="flex gap-4 md:gap-6 px-2 md:px-4 w-full max-w-6xl justify-start md:justify-center whitespace-nowrap min-w-max pb-1 md:pb-0">
+      <button onclick="window.switchView('notes')" id="nav-notes" class="nav-active font-bold text-xs md:text-lg transition-all uppercase tracking-wider pop-text">💻 Workspace</button>
+      <button onclick="window.switchView('style')" id="nav-style" class="nav-inactive font-bold text-xs md:text-lg transition-all uppercase tracking-wider pop-text">🎨 Style Forge</button>
+      <button onclick="window.switchView('prompt')" id="nav-prompt" class="nav-inactive font-bold text-xs md:text-lg transition-all uppercase tracking-wider pop-text">✨ Prompt Crafter</button>
+      <button onclick="window.switchView('library')" id="nav-library" class="nav-inactive font-bold text-xs md:text-lg transition-all uppercase tracking-wider pop-text">📚 Library</button>
+      <button onclick="window.switchView('assets')" id="nav-assets" class="nav-inactive font-bold text-xs md:text-lg transition-all uppercase tracking-wider pop-text">📦 Assets</button>
+      <button onclick="window.switchView('3dstudio')" id="nav-3dstudio" class="nav-inactive font-bold text-xs md:text-lg transition-all uppercase tracking-wider pop-text">🔠 3D Studio</button>
+      <button onclick="window.switchView('copilot')" id="nav-copilot" class="nav-inactive font-bold text-xs md:text-lg transition-all uppercase tracking-wider pop-text">🤖 Copilot</button>
+    </div>
+  </nav>
+
+  <div id="view-notes" class="flex-1 flex overflow-hidden relative">
+    <div id="mobile-overlay" onclick="window.toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-80 z-10 hidden md:hidden backdrop-blur-sm"></div>
+
+    <aside id="sidebar" class="w-72 md:w-80 panel-inner flex flex-col absolute md:relative z-20 h-full transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+      <div class="p-4 md:p-5 border-b border-gray-800 flex justify-between items-center">
+        <h2 class="text-xl md:text-2xl font-bold text-d1d5db pop-text">Documents</h2>
+        <button onclick="window.toggleSidebar()" class="md:hidden text-gray-400 hover:text-white text-2xl">&times;</button>
+      </div>
+      <div class="p-3 md:p-5 flex gap-2">
+        <button onclick="window.createNewNote()" class="flex-1 py-2 rounded-lg btn-3d-burgundy text-xs md:text-sm uppercase tracking-wider">+ New Note</button>
+      </div>
+      <div class="px-3 md:px-5 pb-3 flex gap-2 md:gap-3 text-[10px] md:text-xs">
+        <button onclick="window.exportNotes()" class="flex-1 py-2 rounded btn-3d-navy">📥 Export</button>
+        <button onclick="document.getElementById('import-file').click()" class="flex-1 py-2 rounded btn-3d-navy">📤 Import</button>
+        <input type="file" id="import-file" accept=".json" class="hidden" onchange="window.importNotes(event)">
+      </div>
+      <div class="px-3 md:px-5 py-2 md:py-3 border-b border-gray-800">
+        <input type="text" id="search-bar" oninput="window.renderNoteList()" placeholder="🔍 Search titles or tags..." class="w-full input-3d rounded-lg px-3 py-2 text-xs md:text-sm transition-colors">
+      </div>
+      <div id="note-list" class="flex-1 overflow-y-auto p-2 md:p-4 space-y-2 md:space-y-4"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full bg-[#080c17] relative w-full overflow-hidden">
+      <header class="p-3 md:p-5 flex items-center justify-between shrink-0 z-10 border-b border-gray-800 bg-[#0b1120]">
+        <div class="flex items-center gap-2 md:gap-4 w-full">
+          <button onclick="window.toggleSidebar()" class="md:hidden text-gray-300 hover:text-white text-xl px-2">☰</button>
+          <div class="flex flex-col w-full max-w-xl">
+            <input type="text" id="note-title" oninput="window.updateNoteData()" class="bg-transparent text-xl md:text-3xl font-bold focus:outline-none border-b-2 border-transparent focus:border-f97316 w-full placeholder-gray-600 text-d1d5db pop-text transition-colors pb-1" placeholder="Note Title...">
+            <input type="text" id="note-tags" oninput="window.updateNoteData()" class="bg-transparent text-xs md:text-sm text-f97316 focus:outline-none placeholder-gray-600 mt-1 md:mt-2 w-full font-mono" placeholder="#tags (comma separated)...">
+          </div>
+        </div>
+        <div class="flex gap-2 items-center">
+            <button onclick="window.toggleGallery()" class="px-3 py-1 md:px-4 md:py-2 btn-3d-silver text-xs md:text-sm rounded-lg whitespace-nowrap hidden md:block border-f97316">🖼️ Gallery</button>
+            <button onclick="window.deleteCurrentNote()" class="px-3 py-1 md:px-4 md:py-2 btn-3d-navy text-xs md:text-sm rounded-lg whitespace-nowrap">🗑️ Delete</button>
+        </div>
+      </header>
+
+      <div class="flex-1 flex flex-col md:flex-row min-h-0 relative">
+        <div class="flex-1 flex flex-col m-2 md:m-4 md:mr-2 panel-3d overflow-hidden relative z-10 transition-all duration-300">
+           <div class="flex flex-wrap gap-2 md:gap-3 p-2 md:p-3 panel-inner sticky top-0 z-10 shrink-0 items-center border-b border-gray-800">
+             
+             <div class="flex items-center input-3d p-1 rounded-lg">
+               <select id="theme-picker" onchange="window.applyTheme(this.value)" class="bg-transparent text-d1d5db text-xs md:text-sm focus:outline-none cursor-pointer font-bold px-1">
+                 <option value="lava">🌋 Lava</option>
+                 <option value="navy">🌌 Navy</option>
+                 <option value="burgundy">🍷 Burgundy</option>
+                 <option value="ubuntu">🟠 Ubuntu</option>
+                 <option value="matrix">🟩 Matrix</option>
+                 <option value="synthwave">🟣 Synthwave</option>
+               </select>
+             </div>
+
+             <div class="flex items-center gap-1 md:gap-2 input-3d p-1 rounded-lg">
+               <select id="font-picker" onchange="window.changeEditorStyle()" class="bg-transparent text-d1d5db text-xs md:text-sm focus:outline-none cursor-pointer w-[70px] md:w-24 px-1">
+                 <option value="'Outfit', sans-serif">Outfit</option>
+                 <option value="'Orbitron', sans-serif">Sci-Fi</option>
+                 <option value="'Cinzel', serif">Cinematic</option>
+                 <option value="'Space Grotesk', sans-serif">Modern</option>
+                 <option value="'Fira Code', monospace">Mono</option>
+                 <option value="'Dancing Script', cursive">Cursive</option>
+                 <option value="serif">Serif</option>
+               </select>
+               <div class="w-px h-4 bg-gray-700 mx-1"></div>
+               <select id="font-size-picker" onchange="window.applyFontSize(this.value)" class="bg-transparent text-d1d5db text-xs focus:outline-none cursor-pointer w-10 px-1">
+                 <option value="1">SM</option>
+                 <option value="3" selected>MD</option>
+                 <option value="5">LG</option>
+                 <option value="7">XL</option>
+               </select>
+               <div class="w-px h-4 bg-gray-700 mx-1"></div>
+               <select onchange="window.applyModernFormat('color', this.value)" class="bg-transparent text-d1d5db text-[10px] md:text-xs focus:outline-none cursor-pointer w-16 px-1">
+                  <option value="">Color...</option>
+                  <option value="#f97316">Lava Orange</option>
+                  <option value="#3b82f6">Cyber Blue</option>
+                  <option value="#e11d48">Burgundy</option>
+                  <option value="#00ff41">Matrix Green</option>
+                  <option value="#f9a8d4">Neon Pink</option>
+                  <option value="#ffffff">Pure White</option>
+               </select>
+               <input type="color" id="text-color-picker" onchange="window.applyModernFormat('color', this.value)" value="#d1d5db" class="w-5 h-5 rounded cursor-pointer bg-transparent border-none">
+             </div>
+
+             <div class="flex items-center gap-1">
+               <button onclick="window.applyModernFormat('bold')" class="w-7 h-7 md:w-8 md:h-8 rounded btn-3d-silver font-black text-sm">B</button>
+               <button onclick="window.applyModernFormat('italic')" class="w-7 h-7 md:w-8 md:h-8 rounded btn-3d-silver italic font-bold text-sm">I</button>
+               <button onclick="window.applyModernFormat('underline')" class="w-7 h-7 md:w-8 md:h-8 rounded btn-3d-silver underline font-bold text-sm">U</button>
+               <button onclick="window.applyModernFormat('glow')" class="w-7 h-7 md:w-8 md:h-8 rounded btn-3d-burgundy font-bold text-sm">G</button>
+             </div>
+             
+             <div class="flex items-center gap-2 ml-auto">
+               <button onclick="window.syncFromCloud()" class="px-2 py-1 md:px-4 md:py-1.5 btn-3d-navy text-xs rounded-lg font-bold shadow-lg uppercase tracking-wider">🔄 Sync</button>
+               <button onclick="window.triggerManualSave(this)" class="px-2 py-1 md:px-4 md:py-1.5 btn-3d-burgundy text-xs rounded-lg font-bold shadow-lg uppercase tracking-wider">💾 Save</button>
+               <button onclick="window.copyNoteText()" class="px-2 py-1 md:px-3 md:py-1 btn-3d-silver text-xs rounded hidden md:block">Copy</button>
+               <button onclick="window.toggleGallery()" class="px-2 py-1 btn-3d-navy text-xs rounded md:hidden border-f97316">🖼️ Gallery</button>
+             </div>
+           </div>
+
+           <div id="text-editor" class="flex-1 w-full p-4 md:p-8 overflow-y-auto text-base md:text-xl leading-relaxed transition-all duration-500 bg-center bg-cover bg-no-repeat pop-text break-words" style="color: #d1d5db; background-color: #0f172a;"></div>
+           
+           <div class="flex justify-between items-center p-2 panel-inner text-[10px] md:text-xs text-d1d5db shrink-0 border-t border-gray-800">
+             <div class="flex items-center gap-1">
+               <button onclick="document.getElementById('bg-img-picker').click()" class="text-gray-400 hover:text-white px-1">🖼️ Set BG</button>
+               <input type="file" id="bg-img-picker" accept="image/*" class="hidden" onchange="window.setCanvasBackground(this)">
+               <input type="color" id="canvas-bg-color" class="hidden" onchange="window.updateCanvasStyle()">
+             </div>
+             <span id="save-status" class="text-f97316 opacity-0 transition-opacity duration-300 font-bold tracking-wider uppercase">💾 Saved</span>
+             <div><span id="word-count" class="font-black text-white text-xs md:text-sm">0</span> words</div>
+           </div>
+        </div>
+
+        <aside id="gallery-panel" class="hidden md:flex w-full md:w-72 lg:w-80 flex-col bg-[#0b1120] border-l border-gray-800 z-20 transition-all transform md:translate-x-0 absolute md:relative inset-y-0 right-0 shadow-2xl md:shadow-none">
+           <div class="p-3 border-b border-gray-800 flex justify-between items-center bg-[#080c17]">
+             <h3 class="font-bold text-white text-sm uppercase tracking-wider pop-text">📌 Reference Gallery</h3>
+             <button onclick="window.toggleGallery()" class="text-gray-400 hover:text-white md:hidden text-lg">&times;</button>
+           </div>
+           <div class="p-3">
+               <button onclick="document.getElementById('gallery-upload').click()" class="w-full py-2 btn-3d-navy rounded-lg text-xs font-bold uppercase tracking-wider border border-dashed border-[#3b82f6]">➕ Add Image</button>
+               <input type="file" id="gallery-upload" accept="image/*" class="hidden" onchange="window.handleGalleryUpload(event)">
+           </div>
+           <div id="gallery-grid" class="flex-1 overflow-y-auto p-3 grid grid-cols-2 gap-3 content-start">
+             <div class="col-span-2 text-center text-xs text-gray-500 font-mono py-8">No references pinned yet.</div>
+           </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <div id="view-style" class="hidden flex-1 gradient-bg w-full">
+    <div class="min-h-full w-full flex flex-col items-center p-4 md:p-10 pb-16">
+      <div class="flex gap-4 mb-4 justify-center w-full mt-2 md:mt-6">
+         <a href="https://images.google.com" target="_blank" class="btn-3d-silver px-4 py-2 rounded-lg text-xs font-bold uppercase shadow-lg">🔍 Google Images</a>
+         <a href="https://pinterest.com" target="_blank" class="btn-3d-burgundy px-4 py-2 rounded-lg text-xs font-bold uppercase shadow-lg">📌 Pinterest</a>
+      </div>
+      <header class="text-center mb-6 md:mb-8 w-full">
+        <h1 class="text-3xl md:text-5xl font-black text-white pop-text drop-shadow-2xl mb-2">Style Forge</h1>
+        <p class="text-gray-300 text-xs md:text-base max-w-xl mx-auto font-medium">Extract aesthetic DNA and hidden prompts from AI generations.</p>
+      </header>
+      <main class="w-full max-w-3xl relative z-10">
+        <div class="mb-4 md:mb-8 panel-3d p-3 md:p-5 flex gap-2 md:gap-4 items-center">
+          <span class="text-xl md:text-3xl drop-shadow-lg">🔑</span>
+          <input type="password" id="gemini-api-key-forge" placeholder="Gemini API Key..." class="flex-1 input-3d rounded-lg px-3 md:px-5 py-2 md:py-3 text-xs md:text-base focus:border-f97316 transition-colors">
+        </div>
+        <div id="sf-upload-section" class="mb-6 md:mb-8">
+          <div id="sf-upload-zone" class="upload-zone rounded-xl md:rounded-2xl p-6 md:p-16 text-center cursor-pointer panel-3d" onclick="document.getElementById('sf-file-input').click()">
+            <input type="file" id="sf-file-input" accept="image/png, image/jpeg, image/webp" class="hidden">
+            <div id="sf-upload-content">
+              <div class="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 rounded-full btn-3d-navy flex items-center justify-center animate-pulse"><span class="text-2xl md:text-4xl">⬆️</span></div>
+              <p class="text-xl md:text-2xl font-bold text-white mb-1 md:mb-2 pop-text">Drop AI Image to Analyze</p>
+              <p class="text-xs md:text-sm text-gray-400 font-mono">Auto-extracts PNG Metadata or uses Gemini Vision</p>
+            </div>
+            <div id="sf-preview-content" class="hidden">
+              <img id="sf-preview-image" src="" alt="Preview" class="mx-auto rounded-xl max-h-48 md:max-h-72 object-contain shadow-2xl border-4 border-[#1e3a8a] mb-4 md:mb-6">
+              <button onclick="event.stopPropagation(); window.resetForge();" class="text-[#d1d5db] text-xs md:text-sm hover:text-white transition font-bold btn-3d-navy px-3 md:px-4 py-2 rounded-lg">🔄 Select different image</button>
+            </div>
+          </div>
+        </div>
+        <div id="sf-analyzing" class="hidden mb-6 md:mb-8 text-center panel-3d p-6 md:p-10">
+          <span class="text-4xl md:text-5xl inline-block animate-bounce mb-4 md:mb-6 drop-shadow-lg">🧬</span>
+          <p class="text-xl md:text-2xl text-white font-bold pop-text mb-2">Extracting DNA...</p>
+        </div>
+        <div id="sf-result" class="hidden panel-3d p-4 md:p-10 space-y-6 md:space-y-8">
+          <div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
+              <h2 class="text-xl md:text-2xl font-bold text-white pop-text">📝 Extracted Details</h2>
+              <div class="flex gap-2 w-full md:w-auto">
+                <button onclick="window.saveToNotesFromElement('sf-prompt-output', false, this)" class="flex-1 md:flex-none btn-3d-burgundy px-3 md:px-5 py-2 rounded-lg text-xs md:text-sm font-bold transition-all">💾 Save</button>
+                <button onclick="window.copyTextFromElement('sf-prompt-output', 'sf-copy-btn')" id="sf-copy-btn" class="flex-1 md:flex-none btn-3d-silver px-3 md:px-5 py-2 rounded-lg text-xs md:text-sm font-bold">Copy</button>
+              </div>
+            </div>
+            <div id="sf-badge-source" class="mb-2 text-[10px] font-bold tracking-widest uppercase text-f97316">Source: Unknown</div>
+            <div id="sf-prompt-output" class="input-3d rounded-xl p-4 md:p-6 font-mono text-xs md:text-base leading-relaxed whitespace-pre-wrap max-h-48 md:max-h-72 overflow-y-auto shadow-inner"></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div class="panel-inner rounded-xl p-4 md:p-5 border border-[#1e3a8a]">
+              <h3 class="text-xs md:text-sm font-bold text-gray-300 mb-3 uppercase tracking-widest pop-text">Colors</h3>
+              <div id="sf-palette" class="flex flex-wrap gap-2 md:gap-3"></div>
+            </div>
+            <div class="panel-inner rounded-xl p-4 md:p-5 border border-[#9f1239]">
+              <h3 class="text-xs md:text-sm font-bold text-gray-300 mb-3 uppercase tracking-widest pop-text">Tags</h3>
+              <div id="sf-tags" class="flex flex-wrap gap-2"></div>
+            </div>
+          </div>
+          <button onclick="window.resetForge()" class="w-full py-3 md:py-4 btn-3d-navy rounded-xl text-sm md:text-lg font-bold mt-2 md:mt-4 uppercase tracking-wider">Analyze Another</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="view-prompt" class="hidden flex-1 gradient-bg w-full">
+    <div class="min-h-full w-full flex flex-col items-center p-4 md:p-10 pb-16">
+      <div class="flex gap-4 mb-4 justify-center w-full mt-2 md:mt-6">
+         <a href="https://images.google.com" target="_blank" class="btn-3d-silver px-4 py-2 rounded-lg text-xs font-bold uppercase shadow-lg">🔍 Google Images</a>
+         <a href="https://pinterest.com" target="_blank" class="btn-3d-burgundy px-4 py-2 rounded-lg text-xs font-bold uppercase shadow-lg">📌 Pinterest</a>
+      </div>
+      <header class="text-center mb-6 md:mb-8 w-full">
+        <h1 class="text-3xl md:text-5xl font-black text-white pop-text drop-shadow-2xl mb-2">Prompt Crafter</h1>
+        <p class="text-gray-300 text-xs md:text-base max-w-xl mx-auto font-medium">Build and enhance text prompts for AI generation.</p>
+      </header>
+      <main class="w-full max-w-3xl relative z-10 space-y-4 md:space-y-6">
+        <div class="panel-3d p-4 md:p-8">
+           <h2 class="text-lg md:text-xl font-bold text-white pop-text mb-3 md:mb-4">1. Base Concept</h2>
+           <input type="text" id="pc-base-idea" placeholder="A solitary astronaut..." class="w-full input-3d rounded-lg md:rounded-xl px-4 md:px-5 py-3 md:py-4 text-sm md:text-lg focus:border-f97316 transition-colors" oninput="window.updateCrafterOutput()">
+        </div>
+        <div class="panel-3d p-4 md:p-8">
+           <h2 class="text-lg md:text-xl font-bold text-white pop-text mb-3 md:mb-4">2. Modifiers</h2>
+           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <div>
+                <label class="block text-xs md:text-sm text-gray-400 font-bold uppercase tracking-wider mb-1 md:mb-2">Art Style</label>
+                <select id="pc-style" class="w-full input-3d rounded-lg px-3 md:px-4 py-2 md:py-3 cursor-pointer text-xs md:text-base" onchange="window.updateCrafterOutput()">
+                  <option value="">None</option>
+                  <option value="Photorealistic, ultra-detailed">Photorealistic</option>
+                  <option value="Cinematic movie still, 35mm lens">Cinematic</option>
+                  <option value="Anime style, Studio Ghibli, 2D illustration">Anime</option>
+                  <option value="Cyberpunk, neon retro-futurism">Cyberpunk</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs md:text-sm text-gray-400 font-bold uppercase tracking-wider mb-1 md:mb-2">Lighting</label>
+                <select id="pc-lighting" class="w-full input-3d rounded-lg px-3 md:px-4 py-2 md:py-3 cursor-pointer text-xs md:text-base" onchange="window.updateCrafterOutput()">
+                  <option value="">None</option>
+                  <option value="Volumetric lighting, god rays">Volumetric</option>
+                  <option value="Golden hour, warm sunlight">Golden Hour</option>
+                  <option value="Neon rim lighting, high contrast">Neon Rim</option>
+                </select>
+              </div>
+           </div>
+           <div class="mt-6 border-t border-gray-800 pt-4">
+             <label class="block text-[10px] md:text-xs text-gray-400 font-bold uppercase tracking-wider mb-3">Tap to Add Modifiers</label>
+             <div class="flex flex-wrap gap-2 md:gap-3">
+               <span onclick="window.appendToCrafter('Volumetric lighting, 8k, highly detailed')" class="px-3 py-1.5 bg-[#1e3a8a] text-white rounded-full cursor-pointer text-[10px] md:text-xs font-mono shadow-md hover:bg-[#3b82f6] transition">Volumetric 8k</span>
+               <span onclick="window.appendToCrafter('Cinematic, 35mm lens, depth of field')" class="px-3 py-1.5 bg-[#4c0519] text-white rounded-full cursor-pointer text-[10px] md:text-xs font-mono shadow-md hover:bg-[#e11d48] transition">Cinematic Lens</span>
+               <span onclick="window.appendToCrafter('Unreal Engine 5 render, ray tracing')" class="px-3 py-1.5 bg-[#1f2937] text-white rounded-full cursor-pointer text-[10px] md:text-xs font-mono shadow-md hover:bg-[#4b5563] transition">UE5 Render</span>
+               <span onclick="window.appendToCrafter('Neon cyberpunk aesthetic, high contrast')" class="px-3 py-1.5 bg-[#080c17] border border-[#f97316] text-[#f97316] rounded-full cursor-pointer text-[10px] md:text-xs font-mono shadow-md hover:bg-[#f97316] hover:text-white transition">Cyberpunk Glow</span>
+             </div>
+           </div>
+        </div>
+        <div class="panel-3d p-4 md:p-8">
+           <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 md:mb-4 gap-2">
+              <h2 class="text-lg md:text-xl font-bold text-white pop-text">3. Final Prompt</h2>
+              <button onclick="window.enhancePromptWithAI()" id="pc-ai-btn" class="w-full md:w-auto btn-3d-navy px-4 md:px-5 py-2 rounded-lg text-xs md:text-sm font-bold shadow-lg uppercase tracking-wider">🪄 AI Enhance</button>
+           </div>
+           <textarea id="pc-output" class="w-full input-3d rounded-lg md:rounded-xl px-4 md:px-5 py-3 md:py-4 text-xs md:text-base focus:border-f97316 transition-colors h-24 md:h-32 mb-4 md:mb-6" placeholder="Your crafted prompt will appear here... "></textarea>
+           <div class="flex gap-2 md:gap-4">
+              <button onclick="window.saveToNotesFromElement('pc-output', true, this)" class="btn-3d-burgundy px-3 md:px-5 py-2 md:py-3 rounded-lg font-bold flex-1 uppercase tracking-wider text-[10px] md:text-base transition-all">💾 Save</button>
+              <button onclick="window.copyTextFromElement('pc-output', 'pc-copy-btn')" id="pc-copy-btn" class="btn-3d-silver px-3 md:px-5 py-2 md:py-3 rounded-lg font-bold flex-1 uppercase tracking-wider text-[10px] md:text-base">Copy</button>
+           </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="view-library" class="hidden flex-1 gradient-bg w-full">
+    <div class="min-h-full w-full flex flex-col items-center p-4 md:p-10 pb-16">
+      <header class="text-center mb-6 md:mb-8 w-full mt-2 md:mt-6">
+        <h1 class="text-3xl md:text-5xl font-black text-white pop-text drop-shadow-2xl mb-2">Prompt Library</h1>
+        <p class="text-gray-300 text-xs md:text-base max-w-xl mx-auto font-medium">Rare, high-quality masterclass prompt templates.</p>
+      </header>
+      <main class="w-full max-w-5xl relative z-10 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="panel-3d p-6 flex flex-col justify-between">
+            <div>
+              <span class="px-2 py-1 bg-[#1e3a8a] text-white border border-[#3b82f6] rounded font-bold text-[10px] shadow-sm uppercase mb-3 inline-block">CRT Glitch</span>
+              <p class="text-gray-200 font-mono text-sm leading-relaxed mb-4 select-all" id="lib-prompt-1">CRT monitor glitch art portrait of a synthetic android, heavy chromatic aberration, pixel sorting, scanlines, databent artifacting, neon cyan and magenta color grade, VCR tracking errors, VHS static overlay, cyberpunk aesthetic.</p>
+            </div>
+            <button onclick="window.copyTextFromElement('lib-prompt-1', 'lib-btn-1')" id="lib-btn-1" class="w-full btn-3d-silver px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">Copy Template</button>
+          </div>
+          <div class="panel-3d p-6 flex flex-col justify-between">
+            <div>
+              <span class="px-2 py-1 bg-[#4c0519] text-white border border-[#e11d48] rounded font-bold text-[10px] shadow-sm uppercase mb-3 inline-block">Architectural Solarpunk</span>
+              <p class="text-gray-200 font-mono text-sm leading-relaxed mb-4 select-all" id="lib-prompt-2">Wide angle architectural photography of a sprawling solarpunk metropolis built into the canopy of a giant redwood tree, lush vertical gardens, sleek biomimetic glass structures, bioluminescent algae lighting, utopian atmosphere, 8k octane render, architectural digest.</p>
+            </div>
+            <button onclick="window.copyTextFromElement('lib-prompt-2', 'lib-btn-2')" id="lib-btn-2" class="w-full btn-3d-silver px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider">Copy Template</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="view-assets" class="hidden flex-1 gradient-bg w-full">
+    <div class="min-h-full w-full flex flex-col items-center p-4 md:p-10 pb-16">
+      <header class="text-center mb-6 md:mb-8 w-full mt-2 md:mt-6">
+        <h1 class="text-3xl md:text-5xl font-black text-white pop-text drop-shadow-2xl mb-2">Brand Assets</h1>
+        <p class="text-gray-300 text-xs md:text-base max-w-xl mx-auto font-medium">Click any 3D asset, logo, or icon to insert it into your active note.</p>
+      </header>
+      <main class="w-full max-w-5xl relative z-10 space-y-6 md:space-y-8">
+        <div class="panel-3d p-4 md:p-8">
+          <h2 class="text-lg md:text-xl font-bold text-white pop-text mb-3 md:mb-4 border-b border-gray-700 pb-2">3D Geometric Popouts</h2>
+          <div class="flex flex-wrap gap-3 md:gap-4 items-center justify-center">
+            <div class="panel-inner p-3 md:p-4 rounded-xl cursor-pointer hover:bg-[#172554] transition transform hover:scale-105 border border-transparent hover:border-[#3b82f6]" onclick="window.insertAsset(this)">
+              <svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="url(#g-navy)" filter="url(#d-shad)"/><circle cx="30" cy="30" r="24" fill="url(#g-high)"/></svg>
+            </div>
+            <div class="panel-inner p-3 md:p-4 rounded-xl cursor-pointer hover:bg-[#4c0519] transition transform hover:scale-105 border border-transparent hover:border-[#f97316]" onclick="window.insertAsset(this)">
+              <svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="url(#g-lava)" filter="url(#d-shad)"/><circle cx="30" cy="30" r="24" fill="url(#g-high)"/></svg>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="view-3dstudio" class="hidden flex-1 gradient-bg w-full">
+    <div class="min-h-full w-full p-4 md:p-10 pb-16">
+      <div class="max-w-5xl mx-auto space-y-8">
+          <header class="flex items-center justify-between border-b border-gray-800 pb-6 mt-4">
+              <div>
+                  <h1 class="text-2xl md:text-4xl font-semibold flex items-center gap-2 text-white">
+                      <i data-lucide="sparkles" class="w-6 h-6 md:w-8 md:h-8 text-indigo-400"></i>
+                      3D Typography Studio
+                  </h1>
+                  <p class="text-gray-400 text-xs md:text-sm mt-1">Cinematic 8K | AI Art Director | Volumetric Lighting</p>
+              </div>
+          </header>
+
+          <section class="panel-3d p-6 relative overflow-hidden">
+              <div class="flex flex-col md:flex-row gap-6 relative z-10">
+                  <div class="flex-1">
+                      <div class="flex justify-between items-end mb-2">
+                          <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold">Target Text</label>
+                          <button id="btn-brainstorm" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1 font-medium disabled:opacity-50">
+                              <i data-lucide="sparkles" class="w-3 h-3 icon-default"></i>
+                              <i data-lucide="loader-2" class="w-3 h-3 spinner hidden-el icon-loading"></i>
+                              ✨ Auto-Idea
+                          </button>
+                      </div>
+                      <input type="text" id="input-text" value="RUSS" class="w-full input-3d rounded-xl px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-bold tracking-wide" placeholder="Enter text...">
+                  </div>
+                  
+                  <div class="flex-1">
+                      <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">3D Style Preset</label>
+                      <select id="select-style" class="w-full input-3d rounded-xl px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all appearance-none cursor-pointer">
+                          <option value="metallic">Metallic Chrome</option>
+                          <option value="realistic">Realistic Photoreal</option>
+                          <option value="cyberpunk" selected>Cyberpunk Neon</option>
+                          <option value="highDepth">High-Depth 3D</option>
+                      </select>
+                  </div>
+                  
+                  <div class="flex items-end">
+                      <button id="btn-generate" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl px-8 py-3 font-medium flex items-center justify-center gap-2 transition-all h-[52px] shadow-lg">
+                          <i data-lucide="wand-2" class="w-5 h-5 icon-default"></i>
+                          <i data-lucide="loader-2" class="w-5 h-5 spinner hidden-el icon-loading"></i>
+                          <span id="btn-generate-text">✨ AI Render</span>
+                      </button>
+                  </div>
+              </div>
+              <p id="error-message" class="hidden-el text-red-400 text-sm mt-4 bg-red-950/30 p-3 rounded-lg border border-red-900/50"></p>
+          </section>
+
+          <section id="results-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-20"></section>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-copilot" class="hidden flex-1 gradient-bg w-full">
+    <div class="min-h-full w-full p-4 md:p-10 pb-16 max-w-5xl mx-auto">
+      <header class="text-center mb-6 md:mb-8 w-full mt-2 md:mt-6">
+        <h1 class="text-3xl md:text-5xl font-black text-white pop-text drop-shadow-2xl mb-2">Pro Mobile Copilot</h1>
+        <p class="text-gray-300 text-xs md:text-base mx-auto font-medium">Quick notes, massive prompt databases, and live code sandbox.</p>
+      </header>
+
+      <div class="cp-nav">
+        <button class="cp-btn cp-tab-btn active" onclick="cpSwitchTab(event, 'cp-notes')">Scratchpad</button>
+        <button class="cp-btn cp-tab-btn" onclick="cpSwitchTab(event, 'cp-prompts')">Prompts DB</button>
+        <button class="cp-btn cp-tab-btn" onclick="cpSwitchTab(event, 'cp-html')">UI Library</button>
+        <button class="cp-btn cp-tab-btn" onclick="cpSwitchTab(event, 'cp-sandbox')">Live Editor</button>
+      </div>
+
+      <div id="cp-notes" class="cp-tab active panel-3d p-4 md:p-6">
+        <textarea id="cp-noteInput" placeholder="Type quick raw notes here..." oninput="cpUpdateStats()"></textarea>
+        <div class="cp-stats-bar"><span id="cp-wordCount">Words: 0</span><span id="cp-editStatus"></span></div>
+        <div class="cp-controls">
+          <button id="cp-mainSaveBtn" class="cp-btn cp-save-btn" onclick="cpSaveNote()">Save Raw Note</button>
+          <button class="cp-btn cp-clear-btn" onclick="cpClearAllNotes()">Clear All</button>
+        </div>
+        <div id="cp-noteList" class="mt-4"></div>
+      </div>
+
+      <div id="cp-prompts" class="cp-tab panel-3d p-4 md:p-6">
+        <input type="text" id="cp-promptSearch" class="cp-search-input" placeholder="Search 80+ prompts..." onkeyup="cpLoadPrompts()">
+        <select id="cp-promptCategory" onchange="cpLoadPrompts()" style="width:100%; padding:12px; margin-bottom:15px; background:rgba(30,30,30,0.8); color:#e0e0e0; border-radius:8px; border:1px solid #f97316;">
+          <option value="image">Image Gen</option>
+          <option value="video">Video Gen</option>
+          <option value="podcast">Podcast Gen</option>
+          <option value="file">File Gen</option>
+        </select>
+        <div id="cp-promptList"></div>
+      </div>
+
+      <div id="cp-html" class="cp-tab panel-3d p-4 md:p-6"><div id="cp-templateList"></div></div>
+
+      <div id="cp-sandbox" class="cp-tab panel-3d p-4 md:p-6">
+        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+          <b class="text-white">Live Editor</b>
+          <div style="display:flex; gap:5px;">
+              <button onclick="document.getElementById('cp-sandboxInput').value='';" class="cp-btn cp-clear-btn" style="padding:4px 8px; font-size:11px;">Wipe Editor</button>
+          </div>
+        </div>
+        <textarea id="cp-sandboxInput" class="cp-sandbox-input" oninput="cpRunSandbox()"></textarea>
+        <div class="cp-stats-bar"><span id="cp-lineCount">Lines: 0</span></div>
+        <div id="cp-sandbox-preview"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const GEMINI_API_KEY = "AIzaSyB2XQJqQkLRcxBK6AKA4oGKiJz5K42Qgho"; 
+    window.notes = []; window.currentNoteId = null; window.saveTimeout = null; window.currentCanvasImage = '';
+    
+    // --- MAIN APP NAVIGATION ---
+    window.switchView = function(view) {
+      ['notes', 'style', 'prompt', 'assets', 'library', '3dstudio', 'copilot'].forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        const nav = document.getElementById(`nav-${v}`);
+        if(el) el.classList.add('hidden');
+        if(nav) nav.className = 'nav-inactive font-bold text-xs md:text-lg pb-1 transition-all uppercase tracking-wider pop-text';
+      });
+      const targetEl = document.getElementById(`view-${view}`);
+      const targetNav = document.getElementById(`nav-${view}`);
+      if(targetEl) targetEl.classList.remove('hidden');
+      if(targetNav) targetNav.className = 'nav-active font-bold text-xs md:text-lg pb-1 transition-all uppercase tracking-wider pop-text';
+      
+      // Init lucide icons if switching to 3d studio
+      if(view === '3dstudio') lucide.createIcons();
+    };
+
+    // --- SHARED UTILITIES ---
+    window.copyTextFromElement = function(elementId, btnId) {
+      const text = document.getElementById(elementId).value || document.getElementById(elementId).textContent;
+      navigator.clipboard.writeText(text); 
+      if(btnId) {
+          const btn = document.getElementById(btnId); const oldText = btn.innerText;
+          btn.innerText = "Copied!"; btn.classList.replace('btn-3d-silver', 'btn-3d-burgundy');
+          if(navigator.vibrate) navigator.vibrate(50);
+          setTimeout(() => { btn.innerText = oldText; btn.classList.replace('btn-3d-burgundy', 'btn-3d-silver'); }, 2000);
+      }
+    };
+    
+    window.appendToCrafter = function(text) {
+      const output = document.getElementById('pc-output');
+      const current = output.value.trim();
+      output.value = current ? current + ', ' + text : text;
+      if(navigator.vibrate) navigator.vibrate(50);
+    };
+
+    // ==========================================
+    // 3D TYPOGRAPHY STUDIO LOGIC
+    // ==========================================
+    const STYLES = {
+        metallic: { name: 'Metallic Chrome', basePrompt: 'Generate an image of the text "{text}" as a three-dimensional word in a polished chrome metallic style. Extruded block letters with mirror sheen. Mobile-friendly 1:1 ratio, 8K fidelity.' },
+        realistic: { name: 'Realistic Photoreal', basePrompt: 'Generate a photorealistic 3D image of the text "{text}" as tangible wooden or plastic blocks on a real surface, lit by sunlight. Mobile-friendly 1:1 ratio, 8K fidelity.' },
+        cyberpunk: { name: 'Cyberpunk Neon', basePrompt: 'Generate an image of "{text}" in a cyberpunk 3D neon style. Glowing neon-lit 3D letters with a futuristic cityscape backdrop. Mobile-friendly 1:1 ratio, cinematic 8K fidelity.' },
+        highDepth: { name: 'High-Depth 3D', basePrompt: 'Generate a 3D high-depth text image of "{text}" with an extreme pop-out effect stretching toward viewer. Mobile-friendly 1:1 ratio, 8K fidelity.' }
+    };
+
+    const state3D = { images: { A: null, B: null, C: null, D: null }, prompts: { A: '', B: '', C: '', D: '' }, loading: false };
+    const elInputText = document.getElementById('input-text');
+    const elSelectStyle = document.getElementById('select-style');
+    const elResultsGrid = document.getElementById('results-grid');
+    const elBtnGenerate = document.getElementById('btn-generate');
+    const elBtnGenerateText = document.getElementById('btn-generate-text');
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const fetchWithRetry = async (url, options, maxRetries = 3) => {
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                const res = await fetch(url, options);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return await res.json();
+            } catch (e) { if (i === maxRetries - 1) throw e; await sleep(1000 * (i+1)); }
+        }
+    };
+
+    const renderGrid = () => {
+        const currentText = elInputText.value.trim() || 'RUSS';
+        const currentStyle = elSelectStyle.value;
+        elResultsGrid.innerHTML = '';
+
+        ['A', 'B', 'C', 'D'].forEach(variant => {
+            const promptText = state3D.prompts[variant] || STYLES[currentStyle].basePrompt.replace('{text}', currentText);
+            const card = document.createElement('div');
+            card.className = 'group flex flex-col gap-3';
+            
+            let imageContent = state3D.images[variant] 
+                ? `<img src="${state3D.images[variant]}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />`
+                : (state3D.loading ? `<i data-lucide="loader-2" class="w-8 h-8 spinner text-indigo-400/50"></i>` : `<i data-lucide="image" class="w-12 h-12 text-neutral-800"></i>`);
+
+            card.innerHTML = `
+                <div class="flex items-center justify-between px-1"><span class="text-sm font-semibold text-gray-400">Variation ${variant}</span></div>
+                <div class="aspect-square panel-inner rounded-2xl overflow-hidden relative flex items-center justify-center">${imageContent}</div>
+                <div class="bg-gray-900/50 rounded-xl p-3 border border-gray-800 flex-1 relative"><p class="text-[10px] md:text-xs text-gray-500 font-mono">${promptText}</p></div>
+            `;
+            elResultsGrid.appendChild(card);
+        });
+        lucide.createIcons();
+    };
+
+    const generateTextAI = async (promptText) => {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const res = await fetchWithRetry(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }], generationConfig: { responseMimeType: "application/json" } }) });
+        return res.candidates?.[0]?.content?.parts?.[0]?.text;
+    };
+
+    document.getElementById('btn-brainstorm').addEventListener('click', async () => {
+        try {
+            const res = await generateTextAI(`{"text": "generate a cool 1-word sci-fi name", "style": "pick one: metallic, realistic, cyberpunk, highDepth"}`);
+            const data = JSON.parse(res);
+            if(data.text) elInputText.value = data.text.toUpperCase();
+            if(data.style && STYLES[data.style]) elSelectStyle.value = data.style;
+        } catch(e) {}
+    });
+
+    elBtnGenerate.addEventListener('click', async () => {
+        const currentText = elInputText.value.trim(); if (!currentText) return;
+        state3D.images = { A: null, B: null, C: null, D: null };
+        const basePrompt = STYLES[elSelectStyle.value].basePrompt.replace('{text}', currentText);
+        
+        state3D.loading = true; elBtnGenerateText.textContent = "Planning..."; renderGrid();
+        
+        try {
+            const dirPrompt = `Generate JSON with keys A,B,C,D. Values are 4 variations of this prompt: "${basePrompt}". A: Straight-on. B: Low-angle. C: High-angle. D: Creative.`;
+            const llmResult = await generateTextAI(dirPrompt);
+            state3D.prompts = JSON.parse(llmResult);
+        } catch (e) {
+            state3D.prompts = { A: basePrompt + " Centered.", B: basePrompt + " Low-angle.", C: basePrompt + " High-angle.", D: basePrompt + " Close-up." };
+        }
+        
+        elBtnGenerateText.textContent = "Rendering..."; renderGrid();
+        const imgUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${GEMINI_API_KEY}`;
+        
+        for (const [key, prompt] of Object.entries(state3D.prompts)) {
+            try {
+                const result = await fetchWithRetry(imgUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ instances: { prompt: prompt }, parameters: { sampleCount: 1 } }) });
+                const b64 = result.predictions?.[0]?.bytesBase64Encoded;
+                if (b64) { state3D.images[key] = `data:image/png;base64,${b64}`; renderGrid(); }
+            } catch(e) { console.error("Image Gen Error", e); }
+        }
+        state3D.loading = false; elBtnGenerateText.textContent = "✨ AI Render"; renderGrid();
+    });
+
+    setTimeout(renderGrid, 500); // Initial 3D Grid Render
+
+    // ==========================================
+    // COPILOT LOGIC (Merged from Prompts.html)
+    // ==========================================
+    let cpEditingIndex = -1;
+
+    window.cpSwitchTab = function(e, tabId) {
+        document.querySelectorAll('.cp-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.cp-tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        e.currentTarget.classList.add('active');
+        if(tabId === 'cp-sandbox') cpRunSandbox();
+    };
+
+    window.cpCopyText = function(text, element) {
+        const cleanText = text.replace(/\[SIG\]/g, "\n\n");
+        navigator.clipboard.writeText(cleanText);
+        if(element) {
+            element.classList.add('copied');
+            setTimeout(() => element.classList.remove('copied'), 600);
+        }
+    };
+
+    window.cpSaveNote = function() {
+        const input = document.getElementById('cp-noteInput').value;
+        if (!input.trim()) return;
+        let notes = JSON.parse(localStorage.getItem('cpSavedNotes') || '[]');
+        if (cpEditingIndex > -1) {
+            notes[cpEditingIndex] = input;
+            cpEditingIndex = -1;
+            document.getElementById('cp-editStatus').innerText = "";
+            document.getElementById('cp-mainSaveBtn').innerText = "Save Raw Note";
+        } else { notes.unshift(input); }
+        localStorage.setItem('cpSavedNotes', JSON.stringify(notes));
+        document.getElementById('cp-noteInput').value = '';
+        cpUpdateStats(); cpLoadNotes();
+    };
+
+    window.cpEditNote = function(index, e) {
+        e.stopPropagation();
+        let notes = JSON.parse(localStorage.getItem('cpSavedNotes') || '[]');
+        document.getElementById('cp-noteInput').value = notes[index];
+        cpEditingIndex = index;
+        document.getElementById('cp-editStatus').innerText = "(Editing Mode)";
+        document.getElementById('cp-mainSaveBtn').innerText = "Update Note";
+    };
+
+    window.cpLoadNotes = function() {
+        let notes = JSON.parse(localStorage.getItem('cpSavedNotes') || '[]');
+        document.getElementById('cp-noteList').innerHTML = notes.map((n, i) => {
+            const body = n.replace(/</g, '&lt;');
+            return `<div class="cp-item-card" onclick="cpCopyText(decodeURIComponent('${encodeURIComponent(n)}'), this)">
+            <small style="color:var(--accent);font-size:0.7em;">Tap to Copy</small><br>${body}
+            <div class="cp-card-actions">
+                <button class="cp-action-link cp-edit-link" onclick="cpEditNote(${i}, event)">Edit</button>
+                <button class="cp-action-link cp-del-link" onclick="event.stopPropagation(); cpDeleteNote(${i})">Remove</button>
+            </div></div>`;
+        }).join('');
+    };
+
+    window.cpDeleteNote = function(index) {
+        if(confirm("Delete this?")) {
+            let notes = JSON.parse(localStorage.getItem('cpSavedNotes') || '[]');
+            notes.splice(index, 1);
+            localStorage.setItem('cpSavedNotes', JSON.stringify(notes));
+            cpLoadNotes();
+        }
+    };
+
+    window.cpClearAllNotes = function() { if(confirm("Wipe all raw notes?")) { localStorage.removeItem('cpSavedNotes'); cpLoadNotes(); } };
+    window.cpUpdateStats = function() { const t = document.getElementById('cp-noteInput').value.trim(); document.getElementById('cp-wordCount').innerText = `Words: ${t ? t.split(/\s+/).length : 0}`; };
+    window.cpRunSandbox = function() { const code = document.getElementById('cp-sandboxInput').value; document.getElementById('cp-sandbox-preview').innerHTML = code; document.getElementById('cp-lineCount').innerText = `Lines: ${code.split('\n').length}`; };
+
+    const cpPromptsDB = {
+        image: ["Cinematic 8K, volumetric lighting, neo-noir reflections.", "Macro 105mm chrome logo, depth of field.", "Golden hour nature, Blue Ridge Mountains fog.", "Stylized vector cyberpunk neon icon, 1:1.", "3D gold/glass logo for 'Lavaz Life'.", "Found footage eerie cabin, high contrast VHS.", "Anime RealMix cyberpunk girl, neon monitors.", "Sci-fi corridor, holographic displays.", "Premium carbon fiber phone product shot.", "Minimal modern brand logo, solid background."],
+        video: ["Pan ArchViz interior, 60fps.", "Drone flyover fantasy mountain, blue hour.", "Neon droid time-lapse, cyberpunk alley.", "First-person horror hallway, flashlight flicker.", "Slow-motion macro water splash on chrome.", "Cinematic logo spin, volumetric lighting.", "Restaurant kitchen rush time-lapse."],
+        podcast: ["Intro: Android ADB commands.", "Interview: Found footage films.", "Evolution: 90s country music.", "Basics: IT networking.", "Privacy: Local storage benefits."],
+        file: ["Python: Auto-rename files.", "JSON: REST API profiles.", "Batch: ADB cache/reboot.", "HTML: Mobile note UI.", "JSON: Study tracker.", "ADB: APK backup script."]
+    };
+
+    const cpTemplatesDB = [
+        { title: "Task Planner", code: "<div><h2>Today</h2><ul><li>Task 1</li></ul></div>" },
+        { title: "Pomodoro UI", code: "<div style='text-align:center;'><h2>25:00</h2><button>Start</button></div>" },
+        { title: "Kanban", code: "<div style='display:flex;gap:5px;'><div>To Do</div><div>Done</div></div>" },
+        { title: "Price Table", code: "<table><tr><td>Plan A</td><td>$10</td></tr></table>" },
+        { title: "Login Page", code: "<form><input type='password'><button>Login</button></form>" },
+        { title: "Hero Section", code: "<section><h1>Welcome</h1><p>Banner text.</p></section>" }
+    ];
+
+    window.cpLoadPrompts = function() {
+        const cat = document.getElementById('cp-promptCategory').value;
+        const query = document.getElementById('cp-promptSearch').value.toLowerCase();
+        const filtered = cpPromptsDB[cat].filter(p => p.toLowerCase().includes(query));
+        document.getElementById('cp-promptList').innerHTML = filtered.map(p => `<div class="cp-item-card" onclick="cpCopyText(decodeURIComponent('${encodeURIComponent(p)}'), this)">${p}<div class="cp-card-actions"><button class="cp-action-link cp-edit-link">Copy</button></div></div>`).join('');
+    };
+
+    window.cpLoadTemplates = function() {
+        document.getElementById('cp-templateList').innerHTML = cpTemplatesDB.map(t => `<div class="cp-item-card" onclick="cpCopyText(decodeURIComponent('${encodeURIComponent(t.code)}'), this)"><b>${t.title}</b><br><code class="text-xs text-gray-400">${t.code.replace(/</g, '&lt;').substring(0, 30)}...</code><div class="cp-card-actions"><button class="cp-action-link cp-edit-link">Copy Full Template</button></div></div>`).join('');
+    };
+
+    // Init Copilot Data
+    setTimeout(() => { cpLoadNotes(); cpLoadPrompts(); cpLoadTemplates(); cpRunSandbox(); }, 500);
+  </script>
+</body>
+</html>
+
