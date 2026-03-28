@@ -1,0 +1,65 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: 
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: 📦 Install Dependencies
+        run: npm install
+
+      - name: 📁 Prepare Web Directory
+        run: |
+          mkdir www
+          rsync -av --exclude='node_modules' --exclude='android' --exclude='.git' --exclude='.github' --exclude='www' . www/
+          sed -i 's/"webDir": *"[^"]*"/"webDir": "www"/g' capacitor.config.json
+
+      - name: 🤖 Add Android Project
+        run: |
+          npx cap add android || npx cap sync android
+
+      - name: 🎨 Generate Custom Icons
+        run: |
+          npm install -g @capacitor/assets
+          mkdir -p assets
+          if [ -f "icon.png" ]; then
+            cp icon.png assets/icon.png
+            npx capacitor-assets generate --android
+          else
+            echo "No icon.png found. Using default Capacitor icon."
+          fi
+
+      - name: 🛠️ Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: 📤 Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Lava-Pro-App
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
